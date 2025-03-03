@@ -1,5 +1,6 @@
 const crypto = require("crypto");
 const pool = require("../config/db"); // Ensure your DB connection is imported
+require('dotenv').config();
 
 exports.paystackWebhook = async (req, res) => {
     try {
