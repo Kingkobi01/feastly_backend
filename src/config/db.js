@@ -10,7 +10,6 @@ const pool = mysql.createPool({
     connectionLimit: 10, // Try increasing this
     queueLimit: 0,
     connectTimeout: 60000,  // Increase timeout to 60s
-    acquireTimeout: 60000   // Increase timeout for acquiring connections
 });
 
 module.exports = pool;

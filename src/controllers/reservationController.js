@@ -12,41 +12,37 @@ exports.createReservation = async (req, res) => {
         }
 
         const reservationId = uuidv4();
-        const status = "pending"; // Default status
+        const status = "pending";
 
-        const query = `
-            INSERT INTO reservations (id, user_id, restaurant_id, reservation_time, status)
-            VALUES (?, ?, ?, ?, ?);
-        `;
-        await pool.query(query, [reservationId, user_id, restaurant_id, reservation_time, status]);
+        await pool.query(
+            `INSERT INTO reservations (id, user_id, restaurant_id, reservation_time, status) VALUES (?, ?, ?, ?, ?);`,
+            [reservationId, user_id, restaurant_id, reservation_time, status]
+        );
 
-        // Fetch user email and restaurant name
-        const getUserQuery = `
-            SELECT users.email, users.name AS user_name, restaurants.name AS restaurant_name 
+        const [rows] = await pool.query(
+            `SELECT users.email, users.name AS user_name, restaurants.name AS restaurant_name 
             FROM users
             JOIN restaurants ON restaurants.id = ?
-            WHERE users.id = ?;
-        `;
-        const [rows] = await pool.query(getUserQuery, [restaurant_id, user_id]);
+            WHERE users.id = ?;`,
+            [restaurant_id, user_id]
+        );
 
-        if (rows.length > 0) {
-            const { email, user_name, restaurant_name } = rows[0];
-            const subject = "Reservation Successfully Created";
-            const html = `
-                <p>Hello <strong>${user_name}</strong>,</p>
-                <p>Your reservation at <strong>${restaurant_name}</strong> is successfully booked for <strong>${reservation_time}</strong>.</p>
-                <p>We will notify you once it is confirmed.</p>
-                <p>Thank you for choosing us!</p>
-            `;
-            const text = html
-            await sendEmailWithQR(email, subject, text, reservationId, restaurant_name, reservation_time, user_name);
+        if (rows.length === 0) {
+            throw new Error(`User ${user_id} or restaurant ${restaurant_id} not found.`);
         }
 
-        res.status(201).json({
-            message: "Reservation created successfully",
-            reservation_id: reservationId,
-            status,
-        });
+        const { email, user_name, restaurant_name } = rows[0];
+        const subject = "Reservation Successfully Created";
+        const html = `
+            <p>Hello <strong>${user_name}</strong>,</p>
+            <p>Your reservation at <strong>${restaurant_name}</strong> is successfully booked for <strong>${reservation_time}</strong>.</p>
+            <p>We will notify you once it is confirmed.</p>
+            <p>Thank you for choosing us!</p>
+        `;
+
+        await sendEmailWithQR(email, subject, html, reservationId, restaurant_name, reservation_time, user_name, "reservation");
+
+        res.status(201).json({ message: "Reservation created successfully", reservation_id: reservationId, status });
     } catch (error) {
         console.error("Error creating reservation:", error);
         res.status(500).json({ message: "Internal server error" });
