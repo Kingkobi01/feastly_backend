@@ -4,11 +4,13 @@ const restaurantRoutes = require("./routes/restaurants")
 const reservationRoutes = require("./routes/reservations");
 const orderRoutes = require('./routes/orders');
 const menuItemRoutes = require('./routes/menuItems');
+const paystackRoutes = require("./routes/paystackRoutes");
 
 const pool = require('./db'); // Import MySQL connection
 
 const app = express();
 app.use(express.json()); // Middleware to handle JSON
+app.use("/api/paystack", paystackRoutes);
 app.use('/users', authRoutes); // Mount user routes
 app.use('/restaurants', restaurantRoutes);
 app.use("/reservations", reservationRoutes);
