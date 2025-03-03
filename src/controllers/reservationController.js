@@ -38,7 +38,8 @@ exports.createReservation = async (req, res) => {
                 <p>We will notify you once it is confirmed.</p>
                 <p>Thank you for choosing us!</p>
             `;
-            await sendEmailWithQR(email, subject, html, reservationId, restaurant_name, reservation_time, user_name);
+            const text = html
+            await sendEmailWithQR(email, subject, text, reservationId, restaurant_name, reservation_time, user_name);
         }
 
         res.status(201).json({

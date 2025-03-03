@@ -15,20 +15,20 @@ const transporter = nodemailer.createTransport({
 
 
 exports.sendEmailWithQR = async (to, subject, text, id, restaurantName, details, userName, type) => {
-
     try {
-        // Format the QR code content dynamically
-        // Generate the QR code link dynamically
-        let qrData = "";
+        if (!id) {
+            throw new Error("Invalid ID for QR code generation");
+        }
 
+        let qrData = "";
         if (type === "order") {
             qrData = `https://feastly.flutterflow.app/orders/${id}`;
         } else if (type === "reservation") {
             qrData = `https://feastly.flutterflow.app/reservations/${id}`;
         }
 
+        console.log("QR Data:", qrData);  // Log the QR data to verify
 
-        // Generate QR Code as a Buffer
         const qrCodeData = await QRCode.toDataURL(qrData);
         const qrCodePath = path.join(__dirname, `qr_${id}.png`);
 
@@ -40,7 +40,7 @@ exports.sendEmailWithQR = async (to, subject, text, id, restaurantName, details,
             from: process.env.EMAIL_USER,
             to,
             subject,
-            html: text, // Use HTML instead of plain text
+            html: text,
             attachments: [
                 {
                     filename: "qr_code.png",
